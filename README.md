@@ -15,6 +15,10 @@ nano config.json                        # serial ports, frequencies, web_passwor
 python3 mcxrepeater.py --config config.json
 ```
 
+Use the stable `/dev/serial/by-id/...` names for the serial ports (`ls -l /dev/serial/by-id/`):
+`/dev/ttyACM0` and `/dev/ttyACM1` can swap or change when a modem resets. Only one program may have a
+port open; on desktop Debian/Ubuntu, `sudo systemctl disable --now ModemManager` stops it probing the modems.
+
 Open `http://<pi>:8090/` and log in with `web_password`. On first start the password is replaced
 by a hash in `config.json`, and a repeater key is generated if `private_key` is empty.
 

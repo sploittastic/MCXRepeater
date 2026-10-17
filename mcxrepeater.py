@@ -343,7 +343,9 @@ class KissModem:
     def __init__(self, port, baud, events):
         # Standard open (DTR raised): nRF52 boards like the RAK4631 only send over USB once DTR is up.
         # An ESP32 board that resets on open is covered by the startup ping retries in main().
-        self.ser = serial.Serial(port, baud, timeout=0.2)
+        # exclusive: a second program on the same port (another repeater, ModemManager) fails here with a clear error
+        # instead of both reading it ("device reports readiness to read but returned no data")
+        self.ser = serial.Serial(port, baud, timeout=0.2, exclusive=True)
         self.events = events
         self._wlock = threading.Lock()
         self._cmd_lock = threading.Lock()
@@ -465,7 +467,7 @@ class KissModem:
                         chunk += self.ser.read(waiting)
             except Exception as e:
                 log.error("serial read failed: %s", e)
-                self.events.put(("serial_error",))
+                self.events.put(("serial_error", str(e)))
                 return
             if not chunk:
                 if self._pending_rx is not None:  # no RxMeta coming
@@ -875,6 +877,7 @@ class Radio:
         self.reported = None                                # (freq Hz, bw Hz, sf, cr) as the modem reports them
         self.status = "starting"
         self.lost = False
+        self.lost_reason = ""
         self.heap = []
         self.seq = itertools.count()
         self.cond = threading.Condition()
@@ -902,6 +905,7 @@ class Radio:
             self.txdone.set()
         elif kind == "serial_error":
             self.lost = True
+            self.lost_reason = ev[1] if len(ev) > 1 else ""
             self.wake()
 
     def wake(self):
@@ -989,7 +993,9 @@ class Radio:
             return False
         if self.lost:
             m.close()
-            self.status = "lost %s" % rc["serial"]
+            self.status = "lost %s: %s" % (rc["serial"], self.lost_reason or "serial error")
+            if "readiness to read" in self.lost_reason:
+                self.status += " (another program is using this port, e.g. ModemManager or another repeater)"
             return False
         m.command(0x19, b"\x01")                            # RxMeta (SNR/RSSI) on
         self.modem, self.port = m, (rc["serial"], rc["baud"])
