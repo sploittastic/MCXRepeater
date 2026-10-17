@@ -9,9 +9,24 @@ if [ "$(id -u)" -ne 0 ]; then
     SUDO="sudo"
 fi
 
-echo "Installing Python packages from apt..."
-$SUDO apt-get update
-$SUDO apt-get install -y python3 python3-serial python3-cryptography
+if python3 -c "import serial, cryptography" 2>/dev/null; then
+    echo "python3-serial and python3-cryptography are already installed: skipping apt."
+else
+    echo "Installing Python packages from apt..."
+    # A stale package list gives "404 Not Found" / "Unable to fetch some archives": refresh it first,
+    # and keep going if only some (e.g. third-party) repositories fail to refresh.
+    $SUDO apt-get update || echo "apt-get update reported errors (see above); trying the install anyway..."
+    if ! $SUDO apt-get install -y python3 python3-serial python3-cryptography; then
+        echo "Retrying with --fix-missing..."
+        $SUDO apt-get install -y --fix-missing python3 python3-serial python3-cryptography || {
+            echo
+            echo "apt could not download the packages. Check the errors above: usually a repository in"
+            echo "/etc/apt/sources.list or /etc/apt/sources.list.d/ is wrong or no longer exists"
+            echo "(cat /etc/os-release shows which release this Pi runs)."
+            exit 1
+        }
+    fi
+fi
 
 # The KISS modems are /dev/ttyACM* or /dev/ttyUSB*, owned by the dialout group.
 USER_NAME="${SUDO_USER:-$(id -un)}"
