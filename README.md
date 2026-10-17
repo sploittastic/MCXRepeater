@@ -8,11 +8,10 @@ every setting.
 ## Install
 
 ```sh
-sudo apt install python3-serial python3-cryptography
 git clone https://github.com/sploittastic/MCXRepeater.git
 cd MCXRepeater
-cp config.example.json config.json      # config.json is gitignored, so git pull never touches it
-nano config.json                        # serial ports, frequencies, web_password
+./installdependencies.sh                # apt packages, dialout group, creates config.json
+nano config.json                        # serial ports, frequencies, web_password (gitignored: git pull never touches it)
 python3 mcxrepeater.py --config config.json
 ```
 
