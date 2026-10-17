@@ -341,11 +341,14 @@ class KissModem:
     wake the caller of command()."""
 
     def __init__(self, port, baud, events):
-        # Standard open (DTR raised): nRF52 boards like the RAK4631 only send over USB once DTR is up.
-        # An ESP32 board that resets on open is covered by the startup ping retries in main().
         # exclusive: a second program on the same port (another repeater, ModemManager) fails here with a clear error
         # instead of both reading it ("device reports readiness to read but returned no data")
-        self.ser = serial.Serial(port, baud, timeout=0.2, exclusive=True)
+        # DTR up (nRF52 boards like the RAK4631 only send over USB once DTR is up), RTS down: on an ESP32-S3's
+        # native USB (Heltec V3/V4 "USB JTAG/serial debug unit") RTS is wired to reset, and a reset drops the device
+        self.ser = serial.Serial(timeout=0.2, exclusive=True)
+        self.ser.port, self.ser.baudrate = port, baud
+        self.ser.dtr, self.ser.rts = True, False
+        self.ser.open()
         self.events = events
         self._wlock = threading.Lock()
         self._cmd_lock = threading.Lock()
