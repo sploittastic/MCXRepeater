@@ -693,6 +693,9 @@ def normalise_radio(r, label):
     o["serial"] = str(o["serial"]).strip()
     if not o["serial"]:
         raise ValueError(label + " serial port: required")
+    if "/" not in o["serial"]:                              # a bare name: ttyACM0, or a /dev/serial/by-id/ entry
+        by_id = os.path.join("/dev/serial/by-id", o["serial"])
+        o["serial"] = by_id if os.path.exists(by_id) or not o["serial"].startswith("tty") else "/dev/" + o["serial"]
     o["baud"] = _int(o["baud"], 1200, 4000000, label + " baud")
     o["freq_mhz"] = round(_float(o["freq_mhz"], 137, 1020, label + " frequency (MHz)"), 6)
     bw = _float(o["bw_khz"], 7, 500, label + " bandwidth (kHz)")
