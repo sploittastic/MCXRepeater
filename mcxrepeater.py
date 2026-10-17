@@ -358,6 +358,7 @@ class KissModem:
         self._pending_rx = None
         self._async_pending = set()
         self._running = True
+        self.frames = 0                                     # KISS frames received (any kind): the modem is alive
         threading.Thread(target=self._reader, name="kiss-rx", daemon=True).start()
 
     def close(self):
@@ -417,6 +418,7 @@ class KissModem:
     def _on_frame(self, frame):
         if not frame:
             return
+        self.frames += 1
         t = frame[0] & 0x0F
         data = frame[1:]
         if t == 0x00:
@@ -469,6 +471,8 @@ class KissModem:
                     if waiting:
                         chunk += self.ser.read(waiting)
             except Exception as e:
+                if not self._running:
+                    return                                  # closed on purpose
                 log.error("serial read failed: %s", e)
                 self.events.put(("serial_error", str(e)))
                 return
@@ -989,8 +993,8 @@ class Radio:
             self.status = "can't open %s: %s" % (rc["serial"], e)
             return False
         for _ in range(10):                                 # give a modem that just reset time to boot
-            if m.command(0x17, timeout=1.5) is not None:
-                break
+            if m.command(0x17, timeout=1.5) is not None or m.frames:
+                break                                       # (an error reply from older firmware still means alive)
             if self.app.stopping or self.lost:
                 break
         else:
