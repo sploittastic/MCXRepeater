@@ -1,0 +1,14 @@
+[Unit]
+Description=MCXRepeater (two-radio MeshCore repeater)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi/MCXRepeater
+ExecStart=/usr/bin/python3 /home/pi/MCXRepeater/mcxrepeater.py --config /home/pi/MCXRepeater/config.json
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

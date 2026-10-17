@@ -1,0 +1,65 @@
+{
+  "listen_address": "0.0.0.0",
+  "listen_port": 8090,
+  "web_password": "change-me",
+  "data_dir": "./data",
+  "log_level": "info",
+  "private_key": "",
+  "name": "MCX Repeater",
+  "lat": null,
+  "lon": null,
+  "advert_interval_min": 60,
+  "flood_advert_interval_h": 12,
+  "relay_enabled": true,
+  "max_flood_hops": 64,
+  "loop_detect": "minimal",
+  "radio1": {
+    "enabled": true,
+    "serial": "/dev/ttyACM0",
+    "baud": 115200,
+    "freq_mhz": 910.525,
+    "bw_khz": 62.5,
+    "sf": 7,
+    "cr": 5,
+    "tx_power_dbm": null,
+    "hash_mode": 0,
+    "repeat_same": true,
+    "repeat_cross": false,
+    "advert": true,
+    "airtime_pct": 100,
+    "kiss_txdelay": 1,
+    "kiss_persistence": 128,
+    "kiss_slottime": 5
+  },
+  "radio2": {
+    "enabled": false,
+    "serial": "/dev/ttyACM1",
+    "baud": 115200,
+    "freq_mhz": 907.875,
+    "bw_khz": 62.5,
+    "sf": 7,
+    "cr": 5,
+    "tx_power_dbm": null,
+    "hash_mode": 0,
+    "repeat_same": true,
+    "repeat_cross": false,
+    "advert": true,
+    "airtime_pct": 100,
+    "kiss_txdelay": 1,
+    "kiss_persistence": 128,
+    "kiss_slottime": 5
+  },
+  "regions": {
+    "mode": "except",
+    "list": [],
+    "relay_unscoped": true
+  },
+  "packet_types": {
+    "mode": "except",
+    "list": []
+  },
+  "blacklist": {
+    "prefixes": [],
+    "channel_names": []
+  }
+}
